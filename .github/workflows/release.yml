@@ -45,7 +45,7 @@ jobs:
       - name: Refuse to republish a version
         run: |
           if npm view "system-design-and-plan-skill@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
-            echo "::error::system-design-and-plan-skill@${GITHUB_REF_NAME#v} is already published; npm versions are immutable"
+            echo "::error::system-design-and-plan-skill@${GITHUB_REF_NAME#v} is already published, and npm versions are immutable. Bump the version in package.json and .claude-plugin/plugin.json, commit, then tag the new version. A tag only publishes a version that is not on npm yet."
             exit 1
           fi
           echo "version ${GITHUB_REF_NAME#v} is not published yet"
