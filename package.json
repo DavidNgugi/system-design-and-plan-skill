@@ -1,6 +1,6 @@
 {
   "name": "system-design-and-plan-skill",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An agent skill that produces a rigorous, evidence-backed engineering plan before any code is written: architecture, data model, flows, ADRs, a derived effort model, and a granular backlog.",
   "license": "MIT",
   "author": {

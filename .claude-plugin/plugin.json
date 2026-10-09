@@ -1,6 +1,6 @@
 {
   "name": "system-design-and-plan",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Produces a rigorous, evidence-backed engineering plan for a new system or large feature before code exists — architecture, data model, flows, stack, dependencies, roadmap, granular backlog, design system, security, ADRs, and agent rules, with verified external facts, derived estimates, and machine-checked docs.",
   "author": {
     "name": "David Ngugi",
