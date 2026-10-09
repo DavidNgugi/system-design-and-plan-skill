@@ -35,8 +35,7 @@
     ".claude-plugin/"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "check": "python3 scripts/check-docs.py . --strict",
