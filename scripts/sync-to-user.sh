@@ -5,8 +5,10 @@
 # The direction is one-way on purpose: git is the source of truth and ~/.agents is the
 # installed copy. Edit here, commit, then run this. Never edit the installed copy.
 #
-# The repository's own machinery (.git, .gitignore, this script) is excluded, so the installed
-# copy is SKILL.md, references/, scripts/ and the licence. The checkout directory is only a container; the installed directory is named from the
+# The repository's own machinery (.git, .gitignore, this script, and the .claude-plugin/
+# manifests that package the skill for the Claude Code, Codex and Copilot marketplaces) is
+# excluded, so the installed copy is SKILL.md, README.md, references/, scripts/ and the
+# licence. The checkout directory is only a container; the installed directory is named from the
 # `name:` field in SKILL.md, so renaming this folder cannot install the skill under the
 # wrong name. Drift is reported by comparing content checksums, so timestamps never
 # register as a difference.
@@ -29,7 +31,8 @@ if [[ -n "$empty" ]]; then
 fi
 
 manifest() {
-  (cd "$1" && find . -type f -not -path './.git/*' ! -name 'sync-to-user.sh' ! -name '.gitignore' -print0 \
+  (cd "$1" && find . -type f -not -path './.git/*' -not -path './.claude-plugin/*' \
+    ! -name 'sync-to-user.sh' ! -name '.gitignore' -print0 \
     | sort -z | xargs -0 "$sha" -a 256 2>/dev/null || true)
 }
 
@@ -50,5 +53,6 @@ elif [[ "${1:-}" == "--dry-run" ]]; then
 fi
 
 mkdir -p "$dest"
-rsync -rlpt --delete --exclude '.git/' --exclude '.gitignore' --exclude 'sync-to-user.sh' "${src}/" "${dest}/"
+rsync -rlpt --delete --exclude '.git/' --exclude '.gitignore' --exclude 'sync-to-user.sh' \
+  --exclude '.claude-plugin/' "${src}/" "${dest}/"
 echo "${name}: installed to ${dest}"

@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # The workflows use floating major tags, so this keeps the majors current.
+  # Pin to commit SHAs instead if you would rather review every bump by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

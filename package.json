@@ -1,0 +1,45 @@
+{
+  "name": "system-design-and-plan-skill",
+  "version": "1.0.0",
+  "description": "An agent skill that produces a rigorous, evidence-backed engineering plan before any code is written: architecture, data model, flows, ADRs, a derived effort model, and a granular backlog.",
+  "license": "MIT",
+  "author": {
+    "name": "David Ngugi",
+    "url": "https://github.com/DavidNgugi"
+  },
+  "homepage": "https://github.com/DavidNgugi/system-design-and-plan-skill#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidNgugi/system-design-and-plan-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DavidNgugi/system-design-and-plan-skill/issues"
+  },
+  "keywords": [
+    "agent-skill",
+    "claude-code-plugin",
+    "engineering",
+    "planning",
+    "architecture",
+    "system-design",
+    "adr",
+    "roadmap",
+    "estimation",
+    "backlog"
+  ],
+  "files": [
+    "SKILL.md",
+    "references/",
+    "scripts/check-docs.py",
+    "scripts/backlog-stats.py",
+    ".claude-plugin/"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "check": "python3 scripts/check-docs.py . --strict",
+    "test": "npm run check"
+  }
+}

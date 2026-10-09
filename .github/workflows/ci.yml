@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Read-only on purpose: pull requests from forks get their write permissions
+# downgraded anyway, so CI must never need one.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Use Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Validate JSON manifests
+        run: |
+          for file in package.json .claude-plugin/marketplace.json .claude-plugin/plugin.json; do
+            node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$file"
+            echo "valid JSON: $file"
+          done
+
+      - name: Check version consistency
+        run: |
+          pkg="$(node -p 'require("./package.json").version')"
+          plugin="$(node -p 'require("./.claude-plugin/plugin.json").version')"
+          if [ "$pkg" != "$plugin" ]; then
+            echo "::error::version drift: package.json is $pkg but plugin.json is $plugin"
+            exit 1
+          fi
+          echo "version $pkg agrees across package.json and plugin.json"
+
+      - name: Validate plugin manifests
+        run: |
+          npm install --global @anthropic-ai/claude-code
+          claude plugin validate . --strict
+
+      - name: Check markdown corpus
+        run: python3 scripts/check-docs.py . --strict
+
+      - name: Verify the publishable tarball
+        run: |
+          npm pack --dry-run --json > "$RUNNER_TEMP/pack.json"
+          node -e '
+            const report = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))[0];
+            const files = report.files.map((entry) => entry.path);
+            const required = [
+              "SKILL.md",
+              ".claude-plugin/marketplace.json",
+              ".claude-plugin/plugin.json",
+              "references/artifacts.md",
+              "references/decision-records.md",
+              "references/research-briefs.md",
+              "scripts/check-docs.py",
+              "scripts/backlog-stats.py"
+            ];
+            const missing = required.filter((path) => !files.includes(path));
+            if (missing.length > 0) {
+              console.error("missing from the tarball: " + missing.join(", "));
+              process.exit(1);
+            }
+            if (files.includes("scripts/sync-to-user.sh")) {
+              console.error("scripts/sync-to-user.sh is repository machinery and must not be published");
+              process.exit(1);
+            }
+            console.log("tarball ok: " + files.length + " files, " + report.size + " bytes");
+          ' "$RUNNER_TEMP/pack.json"

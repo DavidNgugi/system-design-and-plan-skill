@@ -1,0 +1,27 @@
+{
+  "name": "davidngugi",
+  "owner": {
+    "name": "David Ngugi",
+    "url": "https://github.com/DavidNgugi"
+  },
+  "description": "David Ngugi's agent skills, as an installable plugin marketplace.",
+  "plugins": [
+    {
+      "name": "system-design-and-plan",
+      "source": "./",
+      "description": "Produces a rigorous, evidence-backed engineering plan for a new system or large feature before code exists — architecture, data model, flows, stack, dependencies, roadmap, granular backlog, design system, security, ADRs, and agent rules, with verified external facts, derived estimates, and machine-checked docs.",
+      "category": "engineering",
+      "keywords": [
+        "engineering",
+        "planning",
+        "architecture",
+        "system-design",
+        "adr",
+        "roadmap",
+        "estimation",
+        "backlog",
+        "technical-writing"
+      ]
+    }
+  ]
+}

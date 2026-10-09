@@ -1,0 +1,113 @@
+name: Release
+
+# Two constraints from npm shape this file:
+#
+#  1. Trusted publishing rejects `pull_request_target` and `issue_comment` triggers,
+#     so publishing is driven by a tag push.
+#  2. On npmjs.com the trusted publisher must have "Allow npm publish" ticked.
+#     Configurations created after 2026-09-03 default to `npm stage publish` only,
+#     so without that box this workflow fails at the publish step.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify the tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Use Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # One release number lives in two files. npm reads package.json; Claude Code
+      # pins an installed plugin to plugin.json. They must agree with the tag.
+      - name: Check the tag agrees with both manifests
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p 'require("./package.json").version')"
+          plugin="$(node -p 'require("./.claude-plugin/plugin.json").version')"
+          if [ "$tag" != "$pkg" ] || [ "$tag" != "$plugin" ]; then
+            echo "::error::tag v$tag, package.json $pkg, plugin.json $plugin — all three must match"
+            exit 1
+          fi
+          echo "tag v$tag agrees with package.json and plugin.json"
+
+      - name: Refuse to republish a version
+        run: |
+          if npm view "system-design-and-plan-skill@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
+            echo "::error::system-design-and-plan-skill@${GITHUB_REF_NAME#v} is already published; npm versions are immutable"
+            exit 1
+          fi
+          echo "version ${GITHUB_REF_NAME#v} is not published yet"
+
+      - name: Check markdown corpus
+        run: python3 scripts/check-docs.py . --strict
+
+      - name: Validate plugin manifests
+        run: |
+          npm install --global @anthropic-ai/claude-code
+          claude plugin validate . --strict
+
+  publish:
+    name: Publish to npm
+    needs: verify
+    runs-on: ubuntu-latest
+    # id-token is the whole point: OIDC replaces NPM_TOKEN, and provenance is
+    # generated automatically once trusted publishing is configured on npmjs.com.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Use Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1. Below that the publish fails with a
+      # misleading "404 Not Found - PUT" instead of an authentication error, so check first.
+      - name: Check the npm version
+        run: |
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const ok = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!ok) {
+              console.error("npm " + process.argv[1] + " is too old for trusted publishing; >= 11.5.1 is required");
+              process.exit(1);
+            }
+            console.log("npm " + process.argv[1] + " supports trusted publishing");
+          ' "$(npm --version)"
+
+      # No NODE_AUTH_TOKEN on purpose. actions/setup-node writes an .npmrc for the
+      # registry above; supplying a token here would defeat trusted publishing.
+      - name: Publish
+        run: npm publish
+
+  github-release:
+    name: Create the GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          name: ${{ github.ref_name }}

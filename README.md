@@ -1,5 +1,10 @@
 # System Design and Plan
 
+[![CI](https://github.com/DavidNgugi/system-design-and-plan-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/DavidNgugi/system-design-and-plan-skill/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/system-design-and-plan-skill)](https://www.npmjs.com/package/system-design-and-plan-skill)
+[![npm downloads](https://img.shields.io/npm/dm/system-design-and-plan-skill)](https://www.npmjs.com/package/system-design-and-plan-skill)
+[![Licence](https://img.shields.io/npm/l/system-design-and-plan-skill)](./LICENSE)
+
 An agent skill that produces the engineering plan a project deserves **before** anyone writes code: the architecture, the data model, the flows, the decisions with the alternatives they beat, a tiered effort model, a granular backlog, and the rules that bind every later change.
 
 Not a template pack. A process with gates — evidence before claims, decisions recorded rather than remembered, numbers derived from the backlog instead of asserted, and documents that can be machine-checked.
@@ -55,10 +60,59 @@ Seven phases, each with a gate:
 
 ## Install
 
+Pick **one** channel. They all end the same way — a directory holding `SKILL.md`, `references/` and `scripts/` wherever the agent looks — and two of them claim the same path, so the second silently owns the files while the first keeps trying to manage them.
+
+### Any agent, via the skills CLI
+
+```bash
+npx skills add DavidNgugi/system-design-and-plan-skill
+```
+
+Verified against this repository: the CLI finds exactly one skill, `system-design-and-plan`, and copies the whole bundle. Without `-g` it installs to `./.agents/skills/` in the current project; with `-g`, to `~/.agents/skills/`, which is the canonical location and where DSH reads it.
+
+`-a` chooses which agent additionally gets a link to that canonical copy; it does not move the canonical copy. Agents that already scan `~/.agents/skills` need no flag at all — see [Where a skill has to land](#where-a-skill-has-to-land).
+
+### Claude Code, Codex and Copilot, from the plugin marketplace
+
+```bash
+claude plugin marketplace add DavidNgugi/system-design-and-plan-skill
+claude plugin install system-design-and-plan@davidngugi
+
+codex plugin marketplace add DavidNgugi/system-design-and-plan-skill
+codex plugin add system-design-and-plan@davidngugi
+
+copilot plugin marketplace add DavidNgugi/system-design-and-plan-skill
+copilot plugin install system-design-and-plan@davidngugi
+```
+
+One pair of manifests serves all three — [marketplace.json](./.claude-plugin/marketplace.json) and [plugin.json](./.claude-plugin/plugin.json) — because Codex and Copilot both read `.claude-plugin/` alongside their own directories. Neither file declares a `skills` list, and that omission is what makes the root `SKILL.md` load as a single skill in all three.
+
+`claude plugin validate . --strict` is the check, and it passes. Claude Code pins an installed plugin to `version` in [plugin.json](./.claude-plugin/plugin.json) until you change it, so **bump that field whenever the skill changes** or the plugin channel keeps serving the old copy. The update commands are `claude plugin update`, `codex plugin marketplace upgrade` and `copilot plugin update`.
+
+### From npm, for tooling
+
+```bash
+npm install system-design-and-plan-skill
+```
+
+The published tarball is the skill itself — `SKILL.md`, `references/`, `scripts/` and `.claude-plugin/` — with no runtime dependencies and no install scripts. It exists so a marketplace entry can name an immutable version instead of a git ref:
+
+```json
+{
+  "source": {
+    "source": "npm",
+    "package": "system-design-and-plan-skill",
+    "version": "^1.0.0"
+  }
+}
+```
+
+There is no `bin`, so `npx system-design-and-plan-skill` does nothing useful. Use one of the channels above to install the skill for an agent.
+
 ### Into your user-level skills directory
 
 ```bash
-git clone <this-repo> ~/.agents/skills/system-design-and-plan
+git clone https://github.com/DavidNgugi/system-design-and-plan-skill ~/.agents/skills/system-design-and-plan
 ```
 
 Or, from an existing checkout, let the sync script do it:
@@ -75,18 +129,23 @@ Copy the directory to `.agents/skills/system-design-and-plan/` inside the repo s
 
 </details>
 
-<details>
-<summary><strong>Via the skills CLI</strong></summary>
-
-```bash
-npx skills@latest add OWNER/REPO
-```
-
-Replace `OWNER/REPO` with the published location once this repository has one.
-
-</details>
-
 The sync script is one-way on purpose: the checkout is the source of truth, `~/.agents/skills` is an installed copy. Edit here, commit, then sync. It compares by content checksum, so an unchanged skill reports `already in sync`, and it refuses to install a tree containing an empty file.
+
+**Do not point the sync script at a skill the CLI installed.** Both own `~/.agents/skills/system-design-and-plan`. The CLI fingerprints each skill's directory in `~/.agents/.skill-lock.json` and expects to update that directory itself; the sync script `rsync --delete`s it from the checkout. Run both and `npx skills update` reports drift on a skill it believes it manages, while the two overwrite each other's files. One channel per directory.
+
+### Where a skill has to land
+
+Agents scan different directories, so a global install is visible to some and invisible to others unless they are named:
+
+| Agent | Directories scanned | A `-g` install |
+| --- | --- | --- |
+| DSH | `~/.agents/skills`, `~/.dsh/skills`, `<project>/.agents/skills`, `<project>/.dsh/skills` | visible, no flag needed |
+| Copilot | `~/.agents/skills`, `~/.copilot/skills`, `<project>/.agents/skills` | visible, no flag needed |
+| Gemini CLI | `~/.gemini/skills`, `<project>/.agents/skills` | needs `-a gemini-cli` |
+| Claude Code | `~/.claude/skills`, `<project>/.claude/skills` | needs `-a claude-code` |
+| Codex | `~/.codex/skills`, `<project>/.agents/skills` | needs `-a codex` |
+
+DSH merges its local roots by rank — nearest first, `<project>/.dsh/skills`, `<project>/.agents/skills`, configured custom directories, `~/.dsh/skills`, `~/.agents/skills` — and keeps the nearest copy of a duplicate name silently. An installed skill and a project copy therefore resolve to one entry, not two.
 
 ## The scripts
 
@@ -135,12 +194,18 @@ Expects rows shaped like `| PFX-E12-03 | description | acceptance | deps | M |`,
 
 ```
 SKILL.md                        the process: principles, phases, protocols, self-review
+.claude-plugin/marketplace.json the catalog Claude Code, Codex and Copilot register
+.claude-plugin/plugin.json      plugin metadata; no skills list, so the root SKILL.md is the skill
 references/artifacts.md         required sections per document, task and phase conventions
 references/decision-records.md  ADR template, supersession, invariant/threat/refusal registries
 references/research-briefs.md   the evidence-first protocol and copy-paste brief template
 scripts/check-docs.py           links, anchors, fences, diagram openers
 scripts/backlog-stats.py        task counts and effort roll-up
 scripts/sync-to-user.sh         install the checkout into ~/.agents/skills (repo copies only)
+package.json                    npm packaging; its version must match plugin.json
+.github/workflows/ci.yml        doc checkers, manifest validation, tarball contents
+.github/workflows/release.yml   tag -> npm publish over OIDC -> GitHub Release
+.github/dependabot.yml          monthly bump of the workflow action majors
 ```
 
 ## Requirements
@@ -154,6 +219,32 @@ The skill's own rules apply to the skill. Small pull requests, evidence for fact
 ```bash
 scripts/check-docs.py . --strict
 ```
+
+If you touch `.claude-plugin/`, validate it too and bump `version` in [plugin.json](./.claude-plugin/plugin.json) whenever the skill's behaviour changes, because that field is what pins users to a release:
+
+```bash
+claude plugin validate . --strict
+```
+
+## Releasing
+
+Publishing is automated by [release.yml](./.github/workflows/release.yml), which authenticates to npm with OIDC trusted publishing: there is no `NPM_TOKEN` secret to store or rotate, and provenance is generated automatically.
+
+1. Bump `version` in **both** [package.json](./package.json) and [plugin.json](./.claude-plugin/plugin.json). The release fails if those two disagree with each other or with the tag, so a half-bump cannot ship.
+2. Commit, then tag and push:
+
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+The workflow re-runs the checks, refuses a version that is already on npm, publishes, and creates the GitHub Release. The very first version was published by hand, because npm only lets you configure a trusted publisher on a package that already exists.
+
+Three npm rules matter here, and each is easy to get wrong. The trusted publisher must have **"Allow npm publish"** ticked — configurations created after 2026-09-03 default to allowing `npm stage publish` only, so a workflow that runs `npm publish` fails without that box. A new configuration must complete its **first successful publish within two days**, which is what validates it and binds it to the repository's immutable identity; an expired configuration cannot be edited, only deleted and replaced. And npm **rejects trusted-publishing tokens from `pull_request_target` and `issue_comment`** events, which is why the release triggers on a tag push rather than a pull request.
+
+Its required fields are the *GitHub* owner and repository — `DavidNgugi` / `system-design-and-plan-skill` — not the npm account that owns the package, which is `devdavid`. Trusted publishing needs npm 11.5.1 or newer and Node 22.14.0 or newer, so the workflow pins Node 24 and fails early on an older npm rather than making you debug a misleading 404.
+
+Once publishing works, harden the package under its npm **Settings → Publishing access** by selecting **Require two-factor authentication and disallow tokens**. That blocks long-lived tokens without affecting trusted publishers.
 
 ## Licence
 
