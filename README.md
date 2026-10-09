@@ -240,6 +240,8 @@ git push origin v1.0.1
 
 The workflow re-runs the checks, refuses a version that is already on npm, publishes, and creates the GitHub Release. The very first version was published by hand, because npm only lets you configure a trusted publisher on a package that already exists.
 
+A tag publishes a version that is **not yet on npm**. Tagging a version that is already published fails the release rather than republishing it, so the release after a manual first publish is the *next* version — `1.0.0` by hand, then `v1.0.1` through CI.
+
 Three npm rules matter here, and each is easy to get wrong. The trusted publisher must have **"Allow npm publish"** ticked — configurations created after 2026-09-03 default to allowing `npm stage publish` only, so a workflow that runs `npm publish` fails without that box. A new configuration must complete its **first successful publish within two days**, which is what validates it and binds it to the repository's immutable identity; an expired configuration cannot be edited, only deleted and replaced. And npm **rejects trusted-publishing tokens from `pull_request_target` and `issue_comment`** events, which is why the release triggers on a tag push rather than a pull request.
 
 Its required fields are the *GitHub* owner and repository — `DavidNgugi` / `system-design-and-plan-skill` — not the npm account that owns the package, which is `devdavid`. Trusted publishing needs npm 11.5.1 or newer and Node 22.14.0 or newer, so the workflow pins Node 24 and fails early on an older npm rather than making you debug a misleading 404.
