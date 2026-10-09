@@ -177,16 +177,16 @@ Expects rows shaped like `| PFX-E12-03 | description | acceptance | deps | M |`,
 
 ## Why it exists
 
-| Failure mode | The fix in this skill |
+| What goes wrong | What this skill does instead |
 | --- | --- |
-| Versions, quotas, and licences recalled from memory and written as fact | Evidence-first research briefs that forbid invention and require a verification-status section |
-| One enormous document, so every reader loads everything | A corpus with a division of labour and a rule against duplication |
-| A single effort number with no tiers and no calendar assumption | Core / full-bar / post-1.0 totals, explicit contingency, a stated effective-days-per-year model |
-| Tasks that are wishes rather than work | Every task has an ID, observable acceptance criteria, dependencies, and an estimate |
-| A cross-cutting concern deferred, then retrofitted through a finished read path | A seam in 1.0, with the reason recorded in the ADR that defers the feature |
-| Security, parenting, or permissions implemented in the UI layer | Boundaries in the query layer, failing closed, with a leak-audit spike |
-| Decisions changed silently in a document | Supersession: a new ADR, a marked original, and the correction reported |
-| Documents nobody can check, so drift is inevitable | Checkers for links, anchors, diagrams, schemas, and the backlog roll-up |
+| A version, quota, or licence is recalled from memory and written down as fact | Research briefs that demand a primary source, and that list what could not be verified |
+| Everything lands in one enormous document, so every reader has to load all of it | A corpus split by subject, with a rule against stating the same fact twice |
+| Effort is a single number, with no tiers and no stated assumption about the working calendar | Separate totals for the core, the full quality bar, and post-1.0, plus contingency and an explicit working-days-per-year figure |
+| Tasks read like wishes rather than work | Every task has an ID, acceptance criteria somebody else can check, its dependencies, and an estimate |
+| A cross-cutting concern is postponed, then has to be threaded through a feature that is already built | The interface is defined in 1.0 even when the feature is not, and the decision record explains why |
+| Ownership and permission rules are enforced in the UI | They are enforced in the query layer, refuse by default, and ship with a time-boxed spike that tries to leak data between accounts |
+| A decision is changed quietly inside a document | The old decision is superseded by a new record, marked as superseded, and the change is reported |
+| Nobody can check the documents, so they drift | Checkers for links, anchors, diagrams, schemas, and the backlog roll-up |
 
 **Not for:** a single-file change, a bug fix, or a prototype whose whole purpose is to learn by building. For those, write the code.
 
