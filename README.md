@@ -202,10 +202,11 @@ references/research-briefs.md   the evidence-first protocol and copy-paste brief
 scripts/check-docs.py           links, anchors, fences, diagram openers
 scripts/backlog-stats.py        task counts and effort roll-up
 scripts/sync-to-user.sh         install the checkout into ~/.agents/skills (repo copies only)
-package.json                    npm packaging; its version must match plugin.json
-.github/workflows/ci.yml        doc checkers, manifest validation, tarball contents
-.github/workflows/release.yml   tag -> npm publish over OIDC -> GitHub Release
-.github/dependabot.yml          monthly bump of the workflow action majors
+package.json                    npm packaging metadata
+.github/workflows/ci.yml        checks on every push and pull request
+.github/workflows/release.yml   tagged releases
+.github/dependabot.yml          keeps the workflow action versions current
+CONTRIBUTING.md                 the checks to run, and how releases work
 ```
 
 ## Requirements
@@ -214,39 +215,9 @@ No runtime dependencies. The checkers need Python 3.8 or newer; the sync script 
 
 ## Contributing
 
-The skill's own rules apply to the skill. Small pull requests, evidence for factual claims, no new document without a reason the existing ones cannot carry. Run both checkers before opening one:
+The skill's own rules apply to the skill: evidence for factual claims, no new document without a reason the existing ones cannot carry, and small pull requests.
 
-```bash
-scripts/check-docs.py . --strict
-```
-
-If you touch `.claude-plugin/`, validate it too and bump `version` in [plugin.json](./.claude-plugin/plugin.json) whenever the skill's behaviour changes, because that field is what pins users to a release:
-
-```bash
-claude plugin validate . --strict
-```
-
-## Releasing
-
-Publishing is automated by [release.yml](./.github/workflows/release.yml), which authenticates to npm with OIDC trusted publishing: there is no `NPM_TOKEN` secret to store or rotate, and provenance is generated automatically.
-
-1. Bump `version` in **both** [package.json](./package.json) and [plugin.json](./.claude-plugin/plugin.json). The release fails if those two disagree with each other or with the tag, so a half-bump cannot ship.
-2. Commit, then tag and push:
-
-```bash
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-The workflow re-runs the checks, refuses a version that is already on npm, publishes, and creates the GitHub Release. The very first version was published by hand, because npm only lets you configure a trusted publisher on a package that already exists.
-
-A tag publishes a version that is **not yet on npm**. Tagging a version that is already published fails the release rather than republishing it, so the release after a manual first publish is the *next* version — `1.0.0` by hand, then `v1.0.1` through CI.
-
-Three npm rules matter here, and each is easy to get wrong. The trusted publisher must have **"Allow npm publish"** ticked — configurations created after 2026-09-03 default to allowing `npm stage publish` only, so a workflow that runs `npm publish` fails without that box. A new configuration must complete its **first successful publish within two days**, which is what validates it and binds it to the repository's immutable identity; an expired configuration cannot be edited, only deleted and replaced. And npm **rejects trusted-publishing tokens from `pull_request_target` and `issue_comment`** events, which is why the release triggers on a tag push rather than a pull request.
-
-Its required fields are the *GitHub* owner and repository — `DavidNgugi` / `system-design-and-plan-skill` — not the npm account that owns the package, which is `devdavid`. Trusted publishing needs npm 11.5.1 or newer and Node 22.14.0 or newer, so the workflow pins Node 24 and fails early on an older npm rather than making you debug a misleading 404.
-
-Once publishing works, harden the package under its npm **Settings → Publishing access** by selecting **Require two-factor authentication and disallow tokens**. That blocks long-lived tokens without affecting trusted publishers.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the checks to run and how releases work.
 
 ## Licence
 
