@@ -5,17 +5,17 @@
 [![npm downloads](https://img.shields.io/npm/dm/system-design-and-plan-skill)](https://www.npmjs.com/package/system-design-and-plan-skill)
 [![Licence](https://img.shields.io/npm/l/system-design-and-plan-skill)](./LICENSE)
 
-An agent skill that produces the engineering plan a project deserves **before** anyone writes code: the architecture, the data model, the flows, the decisions with the alternatives they beat, a tiered effort model, a granular backlog, and the rules that bind every later change.
+An agent skill that produces the engineering plan a project deserves **before** anyone writes code: the architecture, the data model, the flows, the decisions — each with the alternatives it beat — a tiered effort model, a granular backlog, and the rules that bind every later change.
 
 Not a template pack. A process with gates — evidence before claims, decisions recorded rather than remembered, numbers derived from the backlog instead of asserted, and documents that can be machine-checked.
 
-It was extracted from a real planning exercise: a 36-document corpus, 19 decision records, a 472-task core backlog, and more than a dozen external facts that were wrong when first written and were corrected against primary sources.
+It was extracted from a real planning exercise: a 36-document corpus, 19 decision records, a 472-task core backlog, and more than a dozen external facts that the first drafts got wrong and that were corrected against primary sources.
 
 ## What it produces
 
-| Document | The question it answers |
+| Document | What it covers |
 | --- | --- |
-| `README.md` | What is this, is it for me, how do I run it, what is the legal position |
+| `README.md` | What the project is, whether it fits, how to run it, and the licence |
 | `ARCHITECTURE.md` | How the system is structured and why: module map, contracts, budgets, platform matrix, spikes |
 | `DATA_MODEL.md` | What is stored, with which invariants, indices, retention, and migration policy |
 | `FLOWS.md` | What happens over time, including failure paths and state machines |
@@ -37,11 +37,11 @@ Seven phases, each with a gate:
 
 1. **Recon.** Repo state, toolchain, disk, network reachability of the sources you will need. Gate: you know what you are building on.
 2. **Lock the load-bearing decisions.** The three to five choices that will appear in every file — platform, language, storage, distribution, name. Ask with options, trade-offs, and a recommendation. Gate: no document names a stack that was not agreed.
-3. **Evidence, in parallel with the anchor document.** Dispatch research as parallel agents with a brief that demands primary sources, explicit licences, and a "what I could not verify" section. Write `ARCHITECTURE.md` yourself while they run.
+3. **Evidence, in parallel with the anchor document.** `ARCHITECTURE.md` is the anchor — write it yourself, because it needs your judgement. While you do, dispatch the research as parallel agents with a brief that demands primary sources, explicit licences, and a "what I could not verify" section.
 4. **Self-correct against the evidence.** When a finding contradicts something you wrote, fix the owning document. If it was a *recorded decision*, supersede it in a new ADR and mark the original. Tell the user which of your own claims were wrong.
 5. **Reconcile the numbers.** Derive totals with `scripts/backlog-stats.py`, then propagate them everywhere they are quoted.
 6. **Machine-check.** Run `scripts/check-docs.py`. Confirm every invariant names a test and every task has acceptance criteria.
-7. **Handover.** Rules file, spike table, roadmap tiers, refused-scope tables, and the one or two artifacts that matter most.
+7. **Handover.** Deliver the rules that bind later changes, the table of open spikes, the roadmap tiers, the tables naming what the project will not build, and the one or two artifacts that matter most.
 
 ## The principles it enforces
 
@@ -51,16 +51,16 @@ Seven phases, each with a gate:
 | P2 | **Decisions are records.** Every load-bearing choice gets an ADR with consequences and rejected alternatives |
 | P3 | **One fact, one place.** Link, never duplicate |
 | P4 | **Numbers are derived.** Task counts and effort come from a script or a measurement |
-| P5 | **Scope is tiered and honestly priced.** Core, full quality bar, and post-1.0 roadmap are separate totals with a calendar model |
-| P6 | **Cross-cutting concerns get a seam on day one.** Gating, accounts, observability, i18n, accessibility: the interface exists in 1.0 even when the feature is later |
-| P7 | **Limitations are stated in the product.** Refused-scope tables, accepted risks, best-effort labels, degraded modes |
+| P5 | **Scope is tiered and honestly priced.** The core, the full quality bar, and the post-1.0 roadmap are separate totals, each with contingency and a stated conversion from ideal days to calendar time |
+| P6 | **Cross-cutting concerns get an interface on day one.** Content gating, accounts, observability, translation, accessibility and permissions are designed into 1.0 even when the feature itself comes later |
+| P7 | **Limitations are stated in the product.** The documents name what the project refuses to build, which risks it accepts, what works only best-effort, and how it degrades |
 | P8 | **Unknowns become time-boxed spikes**, each naming the decision it could overturn |
-| P9 | **Docs are machine-checked.** Links, anchors, fences, diagrams, schemas, invariants |
+| P9 | **Docs are machine-checked.** A script verifies that links resolve, anchors exist, code fences balance, diagrams parse, and every invariant names the test that proves it |
 | P10 | **Ask before big work.** Lock the decisions with the user first; guessing costs the whole corpus |
 
 ## Install
 
-Pick **one** channel. They all end the same way — a directory holding `SKILL.md`, `references/` and `scripts/` wherever the agent looks — and two of them claim the same path, so the second silently owns the files while the first keeps trying to manage them.
+Pick **one** channel. They all end the same way — a directory holding `SKILL.md`, `references/` and `scripts/` wherever the agent looks. The skills CLI and the sync script below both claim the same directory, though, so using both means the second silently owns the files while the first keeps trying to manage them.
 
 ### Any agent, via the skills CLI
 
@@ -101,11 +101,12 @@ The published tarball is the skill itself — `SKILL.md`, `references/`, `script
 {
   "source": {
     "source": "npm",
-    "package": "system-design-and-plan-skill",
-    "version": "^1.0.0"
+    "package": "system-design-and-plan-skill"
   }
 }
 ```
+
+Add a `version` field to pin a range; without one the entry follows the latest release, which the badge at the top of this file always reports.
 
 There is no `bin`, so `npx system-design-and-plan-skill` does nothing useful. Use one of the channels above to install the skill for an agent.
 
@@ -161,7 +162,7 @@ scripts/check-docs.py . --strict   # treat warnings as failures
 scripts/check-docs.py . --json
 ```
 
-Warnings rather than failures are used for repeated headings, because structured repetition (one block per subject) is legitimate — but it makes that heading's anchor ambiguous, which is worth knowing.
+Repeated headings produce warnings rather than failures, because structured repetition (one block per subject) is legitimate. The repetition does make that heading's anchor ambiguous, which is worth knowing.
 
 ### `scripts/backlog-stats.py`
 
@@ -173,7 +174,7 @@ scripts/backlog-stats.py docs/TASKS.md --phases "0:0-4,1:5-9,2:10-15"
 scripts/backlog-stats.py docs/TASKS.md --core "1:1-13,3:1-10" --contingency 0.3
 ```
 
-Expects rows shaped like `| PFX-E12-03 | description | acceptance | deps | M |`, with estimates from `XS 0.5`, `S 1`, `M 2.5`, `L 4.5`, `XL 8` ideal days.
+Expects rows shaped like `| PFX-E12-03 | description | acceptance | deps | M |`. Estimates are in ideal days — a day of focused work, with meetings and interruptions taken out — using `XS 0.5`, `S 1`, `M 2.5`, `L 4.5`, `XL 8`.
 
 ## Why it exists
 

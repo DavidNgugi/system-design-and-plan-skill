@@ -24,7 +24,7 @@ Do not use for: a single-file change, a bug fix, a spike whose whole purpose is 
 | P3 | **One fact, one place.** Decisions in ADRs, structure in ARCHITECTURE, behaviour in FLOWS, data in DATA_MODEL, work in TASKS. Link, never duplicate | A reviewer should be able to delete any duplicated paragraph and lose nothing |
 | P4 | **Numbers are derived, not asserted.** Task counts, effort, budgets, and dataset sizes come from a script or a measurement | `scripts/backlog-stats.py`; reconcile every total across the corpus |
 | P5 | **Scope is tiered and honestly priced.** Core, full quality bar, and post-1.0 roadmap are separate totals with a stated calendar conversion and contingency | Never present one number as "the estimate" |
-| P6 | **Cross-cutting concerns get a seam on day one.** Content gating, accounts, observability, i18n, accessibility, permissions: define the interface in 1.0 even if the feature is later, because retrofitting through a finished read path is the expensive version | A named task in the early phase, and a stated reason in its ADR |
+| P6 | **Cross-cutting concerns get an interface on day one.** Content gating, accounts, observability, translation, accessibility, permissions: define the interface in 1.0 even if the feature is later, because retrofitting through a finished read path is the expensive version | A named task in the early phase, and a stated reason in its ADR |
 | P7 | **Limitations are stated in the product.** "What we refuse" tables, accepted-risk rows, best-effort labels, degraded-mode documents. No silent gaps | A limitations section in README and SECURITY |
 | P8 | **Unknowns become time-boxed spikes.** Anything that could invalidate a decision gets an ID, a question, a time box, and the decision it unblocks | A spike table, referenced by the ADRs it can overturn |
 | P9 | **Docs are machine-checked.** Links resolve, fences balance, diagrams parse, schemas validate, invariants map to tests, tasks have IDs and acceptance criteria | `scripts/check-docs.py` plus the structural rules in `references/artifacts.md` |
@@ -72,7 +72,7 @@ Then confirm by inspection: every invariant names a test, every task has an ID, 
 
 ### Phase 7 — Handover
 
-AGENTS.md rules, the spike table, roadmap tiers, refused-scope tables, and a presentation of the one or two artifacts that matter most. State what you need from the user next and what you deliberately did not do.
+AGENTS.md rules, the spike table, roadmap tiers, the tables naming what the project will not build, and a presentation of the one or two artifacts that matter most. State what you need from the user next and what you deliberately did not do.
 
 ## Artifact division of labour
 
@@ -96,6 +96,8 @@ Full templates: `references/artifacts.md`.
 
 ## Estimation protocol
 
+Estimates are in **ideal days**: one day of focused work, with meetings, interruptions, review and rework already taken out. An ideal day is not a calendar day.
+
 - Label each task `XS` 0.5d, `S` 1d, `M` 2.5d, `L` 4.5d, `XL` 8d; split anything larger than five ideal days before starting it.
 - Sum with a script, per epic and per tier. Never hand-count.
 - Three tiers, always: **core** (usable and shippable), **full quality bar** (every gate, every platform), **post-1.0 roadmap** (committed but excluded from 1.0 totals). Quote all three.
@@ -110,8 +112,8 @@ Full templates: `references/artifacts.md`.
 3. Every load-bearing decision has an ADR with rejected alternatives.
 4. No fact duplicated across files; each document answers only its own question.
 5. Every invariant is numbered and names its test; every task has ID, acceptance criteria, dependencies, estimate.
-6. Totals derived by script, reconciled everywhere they appear, tiered, with a calendar model.
-7. Cross-cutting seams present in 1.0 even where the feature is later.
+6. Totals derived by script, reconciled everywhere they appear, tiered, with a stated calendar conversion.
+7. Cross-cutting interfaces present in 1.0 even where the feature is later.
 8. Limitations, refusals, and accepted risks written down.
 9. Spikes listed with questions, time boxes, and the decision each unblocks.
 10. `check-docs.py` clean; `backlog-stats.py` matches the quoted totals.
